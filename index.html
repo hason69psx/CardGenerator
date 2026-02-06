@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Play Card Generator</title>
+    <style>
+        :root { --card-width: 400px; --card-height: 250px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px; }
+
+        /* Card Base */
+        .card {
+            width: var(--card-width); height: var(--card-height); border-radius: 15px;
+            position: relative; overflow: hidden; background-size: cover; background-position: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-transform: uppercase;
+            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+
+        /* Front Styling */
+        #front { background: linear-gradient(135deg, #2c3e50, #000); padding: 25px; box-sizing: border-box; }
+        .chip { 
+            width: 55px; height: 42px; background: linear-gradient(135deg, #f1c40f, #d4af37);
+            border-radius: 8px; margin-top: 20px; position: relative; border: 1px solid #b8860b;
+        }
+        .chip::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(90deg, transparent 45%, #b8860b 45%, #b8860b 55%, transparent 55%),
+                              linear-gradient(0deg, transparent 45%, #b8860b 45%, #b8860b 55%, transparent 55%);
+            background-size: 15px 15px; opacity: 0.3;
+        }
+        #display-number { 
+            font-family: 'Courier New', monospace; font-size: 1.6rem; margin-top: 25px; 
+            letter-spacing: 2px; color: #fff; text-shadow: -1px -1px 1px #000, 1px 1px 1px #888; 
+        }
+
+        /* Back Styling */
+        #back { background: #e0e0e0; color: black; display: flex; flex-direction: column; }
+        .mag-stripe { width: 100%; height: 50px; background: #111; margin-top: 20px; -webkit-print-color-adjust: exact !important; }
+        .signature-area { 
+            width: 80%; height: 35px; background: #fff; margin: 10px 20px; 
+            display: flex; align-items: center; justify-content: flex-end; padding-right: 15px;
+        }
+        .cvc-display { font-family: 'Courier New', monospace; font-weight: bold; border: 1px solid #000; padding: 0 5px; }
+        .rickroll-container { padding: 0 20px; text-align: center; }
+        h3 { font-size: 12px; margin: 5px 0; line-height: 1.2; text-transform: none; color: #222; }
+
+        /* Controls */
+        .controls { background: #222; padding: 25px; border-radius: 12px; width: 450px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        label { font-size: 11px; color: #aaa; margin-bottom: -10px; }
+        input { padding: 10px; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; }
+        button { padding: 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        .gen-btn { background: #e74c3c; color: white; }
+        .print-btn { background: #2980b9; color: white; }
+
+        @media print {
+            .controls, h1 { display: none !important; }
+            body { background: white; }
+            .card { border: 1px solid #ddd; margin: 20px auto; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Pro Play Card Maker</h1>
+
+    <div class="card-container">
+        <div id="front" class="card">
+            <div id="display-bank" style="font-weight:bold">BANK NAME</div>
+            <div class="chip"></div>
+            <div id="display-number">0000 0000 0000 0000</div>
+            <div style="display:flex; justify-content: space-between; margin-top: 20px;">
+                <div><div style="font-size:9px">HOLDER</div><div id="display-name">FULL NAME</div></div>
+                <div><div style="font-size:9px">EXPIRES</div><div id="display-date">MM/YY</div></div>
+            </div>
+        </div>
+
+        <div id="back" class="card">
+            <div class="mag-stripe"></div>
+            <div class="signature-area">
+                <span style="font-size:9px; margin-right:10px">SIGNATURE</span>
+                <span class="cvc-display" id="display-cvc">000</span>
+            </div>
+            <div class="rickroll-container">
+                <h3>Never gonna give you up, never gonna let you down. Never gonna run around and desert you. Never gonna make you cry, never gonna say goodbye!</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="full-width"><label>Bank Name</label><input type="text" id="bank-input" placeholder="Bank Name"></div>
+        <div class="full-width"><label>Cardholder Name</label><input type="text" id="name-input" placeholder="Name"></div>
+        <div><label>Expiry</label><input type="text" id="date-input" placeholder="MM/YY"></div>
+        <div><label>CVC (Manual)</label><input type="text" id="cvc-input" placeholder="123"></div>
+        
+        <div><label>Front Image</label><input type="file" id="front-bg" accept="image/*"></div>
+        <div><label>Back Image</label><input type="file" id="back-bg" accept="image/*"></div>
+        
+        <button class="gen-btn full-width" onclick="generate()">Generate Random Numbers</button>
+        <button class="print-btn full-width" onclick="window.print()">Print Card Set</button>
+    </div>
+
+    <script>
+        const sync = (id, target) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                document.getElementById(target).innerText = e.target.value.toUpperCase() || "---";
+            });
+        };
+        sync('bank-input', 'display-bank');
+        sync('name-input', 'display-name');
+        sync('date-input', 'display-date');
+        sync('cvc-input', 'display-cvc');
+
+        const handleBg = (inputId, cardId) => {
+            document.getElementById(inputId).addEventListener('change', function(e) {
+                const reader = new FileReader();
+                reader.onload = () => document.getElementById(cardId).style.backgroundImage = `url(${reader.result})`;
+                reader.readAsDataURL(e.target.files[0]);
+            });
+        };
+        handleBg('front-bg', 'front');
+        handleBg('back-bg', 'back');
+
+        function generate() {
+            const num = Array.from({length: 16}, () => Math.floor(Math.random() * 10)).join('').replace(/(.{4})/g, '$1 ').trim();
+            document.getElementById('display-number').innerText = num;
+            const cvc = Math.floor(Math.random() * 899) + 100;
+            document.getElementById('display-cvc').innerText = cvc;
+            document.getElementById('cvc-input').value = cvc;
+        }
+    </script>
+</body>
+</html>
